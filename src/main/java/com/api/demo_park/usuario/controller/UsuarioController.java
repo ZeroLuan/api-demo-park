@@ -1,16 +1,19 @@
 package com.api.demo_park.usuario.controller;
 
+import com.api.demo_park.usuario.dto.UsuarioFiltroDto;
 import com.api.demo_park.usuario.dto.UsuarioRequestDto;
 import com.api.demo_park.usuario.dto.UsuarioResponseDto;
 import com.api.demo_park.usuario.dto.UsuarioRequestNovaSenhaDto;
-import com.api.demo_park.usuario.entity.Usuario;
 import com.api.demo_park.usuario.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import openapi.UsuarioDoc;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -20,7 +23,8 @@ public class UsuarioController implements UsuarioDoc {
     private final UsuarioService usuarioService;
 
     @PostMapping(path = "/criar")
-    public ResponseEntity<UsuarioResponseDto> create(@Valid @RequestBody UsuarioRequestDto usuarioDto) {
+    public ResponseEntity<UsuarioResponseDto> create(
+            @Valid @RequestBody UsuarioRequestDto usuarioDto) {
         return ResponseEntity.status(201).body(usuarioService.salvar(usuarioDto));
     }
 
@@ -30,13 +34,17 @@ public class UsuarioController implements UsuarioDoc {
     }
 
     @PatchMapping(path = "/atualizar/senha/{id}")
-    public ResponseEntity<UsuarioResponseDto> atualizarSenhaId(@PathVariable("id") Long id, @Valid @RequestBody UsuarioRequestNovaSenhaDto usuarioRequestNovaSenhaDto) {
+    public ResponseEntity<UsuarioResponseDto> atualizarSenhaId(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody UsuarioRequestNovaSenhaDto usuarioRequestNovaSenhaDto) {
         return ResponseEntity.ok(usuarioService.atualizarSenhaPorId(id, usuarioRequestNovaSenhaDto));
     }
 
-    @GetMapping
-    public ResponseEntity<List<Usuario>> buscarPorId() {
-        return ResponseEntity.ok(usuarioService.buscarTodos());
+    @PostMapping
+    public ResponseEntity<Page<UsuarioResponseDto>> listarUsuario(
+            @Param("usuarioFiltro")  UsuarioFiltroDto usuarioFiltro,
+            @PageableDefault(size = 10) Pageable page) {
+        return ResponseEntity.ok(usuarioService.buscarTodos(usuarioFiltro, page));
     }
 
 }

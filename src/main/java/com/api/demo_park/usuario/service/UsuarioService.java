@@ -1,6 +1,7 @@
 package com.api.demo_park.usuario.service;
 
 import com.api.demo_park.exception.GlobalException;
+import com.api.demo_park.usuario.dto.UsuarioFiltroDto;
 import com.api.demo_park.usuario.dto.UsuarioRequestDto;
 import com.api.demo_park.usuario.dto.UsuarioResponseDto;
 import com.api.demo_park.usuario.dto.UsuarioRequestNovaSenhaDto;
@@ -9,11 +10,12 @@ import com.api.demo_park.usuario.mapper.UsuarioMapper;
 import com.api.demo_park.usuario.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
+import java.time.LocalDateTime;;
 
 @RequiredArgsConstructor
 @Service
@@ -67,6 +69,7 @@ public class UsuarioService {
         return usuarioMapper.toDto(buscarPorIdERetornaUsuario(id));
     }
 
+    @Transactional(readOnly = true)
     public Usuario buscarPorIdERetornaUsuario(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new GlobalException("Usuário não encontrado com id: " + id));
@@ -93,7 +96,8 @@ public class UsuarioService {
     }
 
     @Transactional(readOnly = true)
-    public List<Usuario> buscarTodos() {
-        return usuarioRepository.findAll();
+    public Page<UsuarioResponseDto> buscarTodos(@Param("usuarioFiltro") UsuarioFiltroDto usuarioFiltro, Pageable page) {
+        Page<Usuario> usuariosPaginado = usuarioRepository.filtrarUsuarioPaginado(usuarioFiltro, page);
+        return usuariosPaginado.map(UsuarioResponseDto::new);
     }
 }

@@ -42,6 +42,9 @@ public class Usuario implements Serializable {
     @Column(name = "modificado_por")
     private String modificadoPor;
 
+    @Column(name = "data_fim")
+    private LocalDateTime dataFim;
+
 
     public enum Role {
         ROLE_ADMIN,

@@ -15,7 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDateTime;;
+import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 @Service
@@ -77,19 +77,9 @@ public class UsuarioService {
 
     @Transactional
     public UsuarioResponseDto atualizarSenhaPorId(Long id, UsuarioRequestNovaSenhaDto usuarioRequestNovaSenhaDto) {
-        if(id == null){
-            throw new GlobalException("Id do usuário não pode ser nulo.");
-        }
-        if (usuarioRequestNovaSenhaDto == null) {
-            throw new GlobalException("Dados da senha não informados.");
-        }
         Usuario usuario = buscarPorIdERetornaUsuario(id);
-        if(!usuario.getPassword().equals(usuarioRequestNovaSenhaDto.getSenhaAtual())){
-            throw new GlobalException("A senha atual do usuario está incorreta.");
-        }
-        if(!usuarioRequestNovaSenhaDto.getNovaSenha().equals(usuarioRequestNovaSenhaDto.getConfirmacaoSenha())){
-            throw new GlobalException("A nova senha e a confirmação de senha não coincidem.");
-        }
+        validaDadosUsuario(usuario, usuarioRequestNovaSenhaDto);
+        buscarPorIdERetornaUsuario(id);
         usuario.setPassword(usuarioRequestNovaSenhaDto.getNovaSenha());
         usuario.setDataModificacao(LocalDateTime.now());
         return  usuarioMapper.toDto(usuarioRepository.save(usuario));
@@ -99,5 +89,20 @@ public class UsuarioService {
     public Page<UsuarioResponseDto> buscarTodos(@Param("usuarioFiltro") UsuarioFiltroDto usuarioFiltro, Pageable page) {
         Page<Usuario> usuariosPaginado = usuarioRepository.filtrarUsuarioPaginado(usuarioFiltro, page);
         return usuariosPaginado.map(UsuarioResponseDto::new);
+    }
+
+    public void validaDadosUsuario(Usuario usuario, UsuarioRequestNovaSenhaDto usuarioRequestNovaSenhaDto) {
+        if(usuario.getId() == null){
+            throw new GlobalException("Id do usuário não pode ser nulo.");
+        }
+        if (usuarioRequestNovaSenhaDto == null) {
+            throw new GlobalException("Dados da senha não informados.");
+        }
+        if(!usuario.getPassword().equals(usuarioRequestNovaSenhaDto.getSenhaAtual())){
+            throw new GlobalException("A senha atual do usuario está incorreta.");
+        }
+        if(!usuarioRequestNovaSenhaDto.getNovaSenha().equals(usuarioRequestNovaSenhaDto.getConfirmacaoSenha())){
+            throw new GlobalException("A nova senha e a confirmação de senha não coincidem.");
+        }
     }
 }
